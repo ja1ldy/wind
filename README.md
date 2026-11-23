@@ -1,138 +1,341 @@
-# windwm / wind 0.3.2
+# wind
 
-A small floating X11 window manager in C, with Xlib, Xft/Fontconfig and Lua
-5.4. No compositor or heavyweight toolkit. `wind-about` is now a **separate
-X11 application** written in C rather than a client drawn by the window
-manager itself.
+**wind** (WindWM) is a lightweight, minimalist floating window manager for the X Window System, written in C.
 
-## Fixed in 0.3.2: the about window disappears under overlapping windows
+Built with simplicity and efficiency in mind, wind provides a traditional desktop experience without requiring a compositor, desktop environment, or heavyweight graphical toolkit.
 
-Previously, the window manager created and painted the About client itself.
-That unusual ownership model caused unreliable redrawing when other clients
-covered or uncovered the window.
+It uses Xlib for window management, Xft and Fontconfig for text rendering, and Lua 5.4 for configuration.
 
-Now:
+wind is designed for Linux systems running X11, from older and resource-constrained computers to modern desktops.
 
-- `wind` starts a separate program, **`wind-about`**, using the existing X11
-  `DISPLAY`. Each program owns its own X11 connection and event loop.
-- `wind-about` handles `Expose` and `ConfigureNotify` and redraws the *whole*
-  window using a cached off-screen X11 pixmap. Text/logo remain visible after
-  cover/uncover and after resize.
-- It sets `WM_CLASS=wind-about`, so choosing **about wind** again focuses the
-  existing client instead of opening another copy.
-- It supports the standard `WM_DELETE_WINDOW` protocol. Use **Super+Shift+C**
-  to close it; there are no titlebar buttons.
-- Dragging/resizing still uses **Alt+left** / **Alt+right**, exactly as for
-  other managed windows. No plain-mouse dragging.
-- The separate program inherits the current WindWM theme colors and Go Mono
-  Nerd Font setting at launch. If you switch themes while it is open, close
-  and reopen About to apply the new theme.
-- The wind SVG logo remains `assets/wind-logo.svg`, parsed with a tiny,
-  purpose-built line/circle renderer; no SVG library or toolkit is required.
+> **Status:** Experimental — version 0.3.2
 
-## Install on Raspberry Pi OS / Debian 13
+## Features
 
-Your existing build dependencies remain sufficient:
+- **Lightweight:** Written in C with minimal dependencies.
+- **Floating windows:** Simple window management without mandatory tiling.
+- **Focus follows mouse:** Windows receive keyboard focus when the pointer enters them.
+- **Keyboard-oriented:** Familiar dwm-style shortcuts and modifier-based mouse controls.
+- **Lua configuration:** Customize appearance and behavior without recompiling.
+- **Built-in application menu:** Launch installed applications directly from the desktop.
+- **Minimal decorations:** Thin borders, no titlebar buttons, and an amber highlight for focused windows.
+- **Custom themes:** Includes sunset, noir, nord, forest, and amber presets.
+- **Wallpaper support:** Includes a selection of CC0 photographs.
+- **Independent About application:** `wind-about` runs as a separate, lightweight X11 client.
+- **No compositor required:** Runs directly on a standard Xorg session.
+
+## Requirements
+
+wind requires an X11 environment and the following libraries:
+
+| Dependency | Purpose |
+|---|---|
+| Xlib | X11 window management |
+| Xft | Font rendering |
+| Fontconfig | Font selection |
+| Lua 5.4 | Configuration |
+| pkg-config | Build configuration |
+| C compiler and Make | Compilation |
+
+Optional dependencies include:
+
+- **Xephyr** for running wind inside another graphical session.
+- **Xvfb and XTest** for automated testing.
+- **feh** for wallpaper functionality.
+- **Go Mono Nerd Font** for the intended interface typography.
+
+The font is not bundled with wind and can be obtained from the [Nerd Fonts project](https://www.nerdfonts.com/).
+
+## Installation
+
+### 1. Install dependencies
+
+On Debian, Ubuntu, and other Debian-based distributions:
 
 ```sh
-sudo apt install build-essential pkg-config libx11-dev libxft-dev liblua5.4-dev
+sudo apt install \
+    build-essential \
+    pkg-config \
+    libx11-dev \
+    libxft-dev \
+    liblua5.4-dev \
+    xorg \
+    xinit \
+    feh
 ```
 
-Back up the old source and extract the new archive (adjust the ZIP location if
-it isn't in `~/Downloads`):
+For other distributions, install the equivalent development packages using your distribution's package manager.
+
+### 2. Download the source
+
+Clone the repository:
 
 ```sh
-cd ~
-cp -a WindWM WindWM.backup-0.3.1
-unzip -o ~/Downloads/WindWM-0.3.2-source.zip
-cd ~/WindWM
-make clean
+git clone https://github.com/ja1ldy/wind.git
+cd wind
+```
+
+### 3. Build
+
+Compile wind from source:
+
+```sh
 make
+```
+
+This builds two executables:
+
+- `wind` — the X11 window manager.
+- `wind-about` — the standalone About application.
+
+### 4. Install
+
+```sh
 sudo make install
+```
+
+By default, the executables are installed to `/usr/local/bin`.
+
+Verify the installation:
+
+```sh
 wind --version
 wind-about --version
 ```
 
-Both commands should report **0.3.2**. `sudo make install` installs two
-executables into `/usr/local/bin`: `wind` (WM) and `wind-about` (X11 client),
-plus an `about wind` desktop entry for application launchers.
-**Do not skip installing `wind-about`.** You can also run it directly from a
-terminal in an X11 session to test independently:
+Both should report version `0.3.2`.
+
+## Starting wind
+
+### Using startx
+
+Create or edit `~/.xinitrc`:
+
+```sh
+exec /usr/local/bin/wind
+```
+
+Then, from a Linux text console, start the X11 session:
+
+```sh
+startx
+```
+
+If you already have an `.xinitrc`, back it up before changing it.
+
+### Using a display manager
+
+The installation includes an X11 session entry, `wind.desktop`.
+
+On compatible display managers, select **wind** from the session menu before logging in.
+
+### Running in a nested X11 session
+
+wind can also run inside Xephyr, allowing it to be tested without replacing the currently running desktop.
+
+Install Xephyr and run:
+
+```sh
+./scripts/run-nested.sh
+```
+
+This is useful for development, testing, and debugging.
+
+## Keyboard and mouse controls
+
+wind follows familiar dwm-style conventions, using the Super key as its primary keyboard modifier.
+
+| Shortcut | Action |
+|---|---|
+| `Super + Shift + Enter` | Open terminal |
+| `Super + P` | Open application menu |
+| `Super + J` | Focus next window |
+| `Super + K` | Focus previous window |
+| `Super + Shift + C` | Close focused window |
+| `Super + Shift + R` | Reload configuration |
+| `Super + Shift + Q` | Exit wind |
+| `Alt + Left Drag` | Move window |
+| `Alt + Right Drag` | Resize window |
+| Desktop left-click | Open application menu |
+| Hover over window | Focus window |
+
+Windows cannot be moved by ordinary titlebar dragging.
+
+## Configuration
+
+wind uses **Lua 5.4** for configuration.
+
+The default configuration is provided in `config.lua.example`.
+
+To create a personal configuration:
+
+```sh
+mkdir -p ~/.config/wind
+cp config.lua.example ~/.config/wind/config.lua
+```
+
+Edit the configuration using your preferred text editor.
+
+Configuration options include themes, wallpaper selection, terminal commands, application menu entries, and focus behavior.
+
+Changes can be reloaded using `Super + Shift + R`.
+
+### Themes
+
+Five themes are included:
+
+| Theme | Description |
+|---|---|
+| sunset | Warm, muted colors with amber accents |
+| noir | Dark monochromatic appearance |
+| nord | Cool colors inspired by Nordic palettes |
+| forest | Natural green tones |
+| amber | Dark background with warm highlights |
+
+Theme definitions are stored in the `themes/` directory.
+
+### Wallpapers
+
+wind supports several wallpapers:
+
+- `sunflowers`
+- `ridge`
+- `pine`
+- `dusk`
+
+The selected photographs are released under CC0 and sourced from Wikimedia Commons.
+
+Wallpapers can be fetched with:
+
+```sh
+make wallpapers
+```
+
+Their original source pages and licensing information are documented in `assets/WALLPAPERS.md`.
+
+No AI-generated wallpapers are included.
+
+## About wind
+
+`wind-about` is an independent X11 application written in C.
+
+Unlike an internal window-manager panel, it maintains its own X11 connection, event loop, and drawing resources.
+
+It displays information about wind and the running system.
+
+The application supports:
+
+- X11 `Expose` and `ConfigureNotify` handling.
+- Double-buffered rendering using an off-screen pixmap.
+- Redrawing after overlapping windows are removed.
+- Dynamic repainting when resized.
+- The standard `WM_DELETE_WINDOW` protocol.
+- Normal WindWM focus, movement, and resizing behavior.
+
+It can be launched through the application menu or directly:
 
 ```sh
 wind-about
 ```
 
-Restart the WM without rebooting: use **Super+Shift+Q** to exit, then `startx`
-from your Raspberry Pi's local text console. Alternatively run
-`./scripts/run-nested.sh` inside your existing graphical session for Xephyr
-mode. Do not call `startx` inside an already running desktop.
+## Source structure
 
-## Basic shortcuts
-
-| Action | Input |
-|---|---|
-| Focus | Hover pointer over window |
-| Move | **Alt+left-drag** |
-| Resize | **Alt+right-drag** |
-| Close focused client (including About) | **Super+Shift+C** |
-| Terminal | **Super+Shift+Enter** |
-| Application menu | Desktop left-click or **Super+P** |
-| Cycle focus | **Super+J / Super+K** |
-| Reload Lua settings | **Super+Shift+R** |
-| Exit wind | **Super+Shift+Q** |
-
-## Files
-
-```
-WindWM/
-├── src/
-│   ├── wind.c            startup, event loop
-│   ├── wind.h            WM types and interfaces
-│   ├── about.c           launcher for external X11 app
-│   ├── clients.c         frames, focus, move, resize
-│   ├── config.c          Lua config and menu actions
-│   ├── events.c          X11 WM event handling
-│   ├── graphics.c        WM panel, Xft text and SVG logo
-│   ├── input.c           keyboard commands
-│   ├── menu.c            double-buffered application menu
-│   └── wallpaper.c       wallpaper and spawn helpers
+```text
+wind/
 ├── apps/
-│   └── wind-about.c      NEW: independent X11 About application
-├── assets/               SVG logo and CC0 wallpaper references
-├── themes/               Lua theme presets
-├── scripts/              nested Xephyr and wallpaper download scripts
-├── tests/                Xvfb + XTest regression tests
+│   └── wind-about.c
+├── assets/
+│   ├── wind-logo.svg
+│   └── WALLPAPERS.md
+├── data/
+│   ├── wind.desktop
+│   └── wind-about.desktop
+├── scripts/
+│   ├── run-nested.sh
+│   └── fetch-wallpapers.sh
+├── src/
+│   ├── wind.c
+│   ├── wind.h
+│   ├── about.c
+│   ├── clients.c
+│   ├── config.c
+│   ├── events.c
+│   ├── graphics.c
+│   ├── input.c
+│   ├── menu.c
+│   └── wallpaper.c
+├── tests/
+│   ├── run-xvfb.sh
+│   └── x11-smoke.c
+├── themes/
+│   ├── amber.lua
+│   ├── forest.lua
+│   ├── noir.lua
+│   ├── nord.lua
+│   └── sunset.lua
+├── config.lua.example
 ├── Makefile
-└── config.lua.example
+├── LICENSE
+└── README.md
 ```
 
-The 0.3.1 wallpaper and Lua configuration functionality is unchanged. To
-fetch the previously selected **CC0 photos** from Wikimedia Commons, run
-`make wallpapers`; their sources and licenses are documented in
-`assets/WALLPAPERS.md`. No generated wallpapers are included.
+The source is divided into small modules to keep the window manager understandable and maintainable.
 
-## Tests and limitations
+The project intentionally avoids unnecessary abstraction layers and external frameworks.
 
-This revision was compiled and tested on an x86_64 X11/Xvfb server. Tests
-create actual X11 windows and check About-opening, focus, Alt-drag, resizing,
-cover/uncover repaint, window class and keyboard closing. It has **not** yet
-been validated on Raspberry Pi hardware, although it uses the same Xlib and
-Xft APIs available in Debian 13 arm64.
+## Testing
 
-`wind` is still an experimental single-screen floating WM, not a complete
-ICCCM/EWMH implementation. Full multiple-monitor workspaces, trays and
-fullscreen compatibility are not yet implemented.
+wind includes an automated X11 regression test suite.
 
-To run the regression suite on Debian:
+On Debian-based distributions, install the test dependencies:
 
 ```sh
 sudo apt install xvfb libxtst-dev x11-utils
+```
+
+Build and run the tests:
+
+```sh
 make
 ./tests/run-xvfb.sh
 ```
 
+The tests cover window creation, keyboard focus, pointer-based movement and resizing, About-window repainting, and window closing.
+
+The current regression suite has been exercised using Xvfb on x86_64 Linux. Compatibility across other architectures and X11 configurations is an ongoing development goal.
+
+## Current limitations
+
+wind is still under active development.
+
+Version 0.3.2 provides a functional, single-screen floating window manager but does not yet implement every ICCCM or EWMH feature.
+
+Features not yet fully supported include:
+
+- Multiple virtual workspaces.
+- Comprehensive multi-monitor management.
+- System tray integration.
+- Complete fullscreen and EWMH compatibility.
+- Advanced window layouts.
+
+The goal is to improve compatibility and stability while preserving a small codebase, low resource usage, and minimal dependencies.
+
+## Contributing
+
+Contributions, bug reports, and suggestions are welcome.
+
+If you encounter a problem, please open a GitHub issue with your Linux distribution, Xorg version, steps to reproduce, and any relevant logs.
+
+Pull requests should aim to preserve the project's minimal design and avoid introducing unnecessary dependencies.
+
 ## License
 
-WindWM C source is MIT licensed. The external wallpapers are CC0 photos,
-with source pages linked in `assets/WALLPAPERS.md`. Fonts are not bundled.
+wind is released under the **MIT License**. See [LICENSE](LICENSE) for details.
+
+The external wallpapers are CC0 photographs. Their sources and licensing details can be found in [assets/WALLPAPERS.md](assets/WALLPAPERS.md).
+
+Third-party fonts are not bundled with the project.
+
+---
+
+**wind — a small window manager that stays out of your way.**

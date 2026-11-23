@@ -1,0 +1,16 @@
+-- wind config: ~/.config/wind/config.lua
+-- reload: mod+shift+r  (mod is super by default)
+wind = {
+  theme = "noir",              -- noir, sunset, nord, forest, amber
+  terminal = "x-terminal-emulator",
+  browser = "x-www-browser",
+  file_manager = "xdg-open .",
+  wallpaper = "sunflowers",  -- sunflowers, ridge, pine, dusk, none, or image path
+  font = "GoMono Nerd Font Mono:size=11",
+  menu_items = 15,
+  focus_follows_mouse = true,
+  apps = {
+    {"editor", "mousepad"},
+    {"system monitor", "xterm -e top"},
+  }
+}

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=wind
+Comment=small x11 window manager
+Exec=wind
+Type=Application
+DesktopNames=wind

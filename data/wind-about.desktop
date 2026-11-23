@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=about wind
+Comment=system information for windwm
+Exec=wind-about
+Terminal=false
+Categories=System;
